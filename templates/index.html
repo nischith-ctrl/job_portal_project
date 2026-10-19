@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="hero-banner text-center mb-4">
+    <h1 class="fw-bold">Find Your Next Career Opportunity</h1>
+    <p class="lead mb-0">Search verified roles by keyword, location, category, or company</p>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('index') }}" class="row g-2">
+            <div class="col-md-3">
+                <input type="text" name="keyword" class="form-control" placeholder="Keyword or Title..." value="{{ request.args.get('keyword', '') }}">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="location" class="form-control" placeholder="Location..." value="{{ request.args.get('location', '') }}">
+            </div>
+            <div class="col-md-3">
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="company" class="form-control" placeholder="Company..." value="{{ request.args.get('company', '') }}">
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary">Filter Jobs</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Job Listings -->
+<div class="row g-3">
+    {% for job in jobs %}
+    <div class="col-md-6">
+        <div class="card job-card h-100 border-0 shadow-sm">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="card-title fw-bold mb-1">{{ job.title }}</h5>
+                        <p class="text-muted mb-2">{{ job.company }} &bull; <span class="badge bg-secondary">{{ job.category }}</span></p>
+                    </div>
+                    <span class="badge bg-success">{{ job.salary }}</span>
+                </div>
+                <p class="small text-muted mb-2">📍 {{ job.location }} | Posted {{ job.created_at.strftime('%b %d, %Y') }}</p>
+                <p class="card-text text-truncate">{{ job.description }}</p>
+                <div class="mt-auto pt-2">
+                    <a href="{{ url_for('job_detail', job_id=job.id) }}" class="btn btn-outline-primary btn-sm">View Details & Apply</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <h5 class="text-muted">No matching job listings found.</h5>
+        <a href="{{ url_for('index') }}" class="btn btn-link">Reset Filters</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

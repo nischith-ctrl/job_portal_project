@@ -1,0 +1,17 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.hero-banner {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+    padding: 3rem 1rem;
+    border-radius: 0.75rem;
+}
+.job-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.job-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}

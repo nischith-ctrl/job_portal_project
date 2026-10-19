@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <span class="badge bg-primary mb-2">{{ job.category }}</span>
+                <h2 class="fw-bold">{{ job.title }}</h2>
+                <h5 class="text-muted mb-3">{{ job.company }} &bull; 📍 {{ job.location }}</h5>
+                <p class="fw-semibold text-success fs-5">💰 Salary: {{ job.salary }}</p>
+                <hr>
+                <h5>Job Description</h5>
+                <p style="white-space: pre-line;">{{ job.description }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Apply for this Position</h5>
+                {% if not current_user.is_authenticated %}
+                    <p class="text-muted">Please log in as a Job Seeker to apply for this job.</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-primary w-100">Login to Apply</a>
+                {% elif current_user.role != 'seeker' %}
+                    <div class="alert alert-secondary mb-0">
+                        You are logged in as <strong>{{ current_user.role|capitalize }}</strong>. Only Job Seekers can submit applications.
+                    </div>
+                {% elif already_applied %}
+                    <div class="alert alert-success mb-0">
+                        ✅ You have already applied for this job! Track it in your Dashboard.
+                    </div>
+                {% else %}
+                    <form method="POST" action="{{ url_for('apply_job', job_id=job.id) }}">
+                        <div class="mb-3">
+                            <label class="form-label">Resume / Portfolio Link (Google Drive, GitHub, LinkedIn)</label>
+                            <input type="url" name="resume_link" class="form-control" placeholder="https://..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cover Letter / Why should we hire you?</label>
+                            <textarea name="cover_letter" rows="4" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Submit Application</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

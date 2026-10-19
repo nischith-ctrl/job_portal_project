@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>{{ current_user.role|capitalize }} Dashboard — Welcome, {{ current_user.username }}</h2>
+    {% if current_user.role in ['employer', 'admin'] %}
+    <form method="POST" action="{{ url_for('import_api_jobs') }}">
+        <button type="submit" class="btn btn-outline-primary btn-sm">⚡ Import 3 Live Jobs via External API</button>
+    </form>
+    {% endif %}
+</div>
+
+{% if current_user.role in ['employer', 'admin'] %}
+<!-- Post a New Job Form -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white fw-bold">Post a New Job Listing</div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('post_job') }}" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="title" class="form-control" placeholder="Job Title" required>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="company" class="form-control" placeholder="Company Name" required>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="category" class="form-control" placeholder="Category (e.g. Software, Design)" required>
+            </div>
+            <div class="col-md-6">
+                <input type="text" name="location" class="form-control" placeholder="Location (e.g. Bengaluru, Remote)" required>
+            </div>
+            <div class="col-md-6">
+                <input type="text" name="salary" class="form-control" placeholder="Salary Range" required>
+            </div>
+            <div class="col-12">
+                <textarea name="description" rows="3" class="form-control" placeholder="Detailed Job Description..." required></textarea>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Publish Job</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Manage Posted Jobs & View Applicants -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white fw-bold">Manage Job Listings & Applicants</div>
+    <div class="card-body">
+        {% for job in jobs %}
+            <div class="border rounded p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0 fw-bold">{{ job.title }} <span class="text-muted fs-6">({{ job.company }})</span></h5>
+                        <small class="text-muted">{{ job.location }} | {{ job.salary }} | Applications: {{ job.applications|length }}</small>
+                    </div>
+                    <form method="POST" action="{{ url_for('delete_job', job_id=job.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete Job</button>
+                        <div class="d-flex gap-2">
+    <a href="{{ url_for('edit_job', job_id=job.id) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
+    <form method="POST" action="{{ url_for('delete_job', job_id=job.id) }}">
+        <button type="submit" class="btn btn-danger btn-sm">Delete Job</button>
+    </form>
+</div>
+                {% if job.applications %}
+                    <div class="mt-3 bg-light p-2 rounded">
+                        <strong class="small">Applicants:</strong>
+                        <ul class="mb-0 small">
+                            {% for app in job.applications %}
+                                <li>
+                                    <strong>{{ app.applicant.username }}</strong> ({{ app.applicant.email }}) —
+                                    <a href="{{ app.resume_link }}" target="_blank">View Resume</a> |
+                                    <em>"{{ app.cover_letter }}"</em>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No jobs posted yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if current_user.role == 'admin' %}
+<!-- Admin User Management Table -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white fw-bold">Admin Panel: Registered Users</div>
+    <div class="card-body table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email }}</td>
+                    <td><span class="badge bg-info text-dark">{{ u.role }}</span></td>
+                    <td>
+                        {% if u.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('delete_user', user_id=u.id) }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete User</button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">Current Admin</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if current_user.role == 'seeker' %}
+<!-- Job Seeker Applied Jobs -->
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white fw-bold">My Submitted Applications</div>
+    <div class="card-body">
+        {% for app in applications %}
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <div>
+                    <h6 class="mb-0 fw-bold">{{ app.job.title }} — {{ app.job.company }}</h6>
+                    <small class="text-muted">Applied on {{ app.applied_at.strftime('%b %d, %Y') }} | Resume: <a href="{{ app.resume_link }}" target="_blank">Link</a></small>
+                </div>
+                <span class="badge bg-primary">{{ app.status }}</span>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">You haven't applied to any jobs yet. <a href="{{ url_for('index') }}">Browse open jobs</a>.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
